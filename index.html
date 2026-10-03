@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#000000">
+<title>Стартап-плей-офф by Chuck</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #000; color: #efeedf; font-family: system-ui, -apple-system, Roboto, sans-serif; }
+  body { display: flex; align-items: center; justify-content: center; text-align: center; padding: 24px; box-sizing: border-box; }
+  .t { font-weight: 900; font-size: 22px; letter-spacing: .02em; text-transform: uppercase;
+       text-shadow: 0 2px 0 #c23a4f, 0 4px 0 #e2702d, 0 6px 0 #f2b31a; margin-bottom: 18px; }
+  .chuck { width: 150px; margin: 0 auto; animation: bob 1.1s ease-in-out infinite; transform-origin: 50% 100%; }
+  @keyframes bob { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-10px) rotate(3deg); } }
+  .glint { animation: glint 1.6s ease-in-out infinite; }
+  @keyframes glint { 0%, 60%, 100% { opacity: 0; } 70%, 85% { opacity: 1; } }
+  .msg { font-weight: 800; font-size: 18px; margin-top: 14px; }
+  .bar { width: min(260px, 80vw); height: 8px; border-radius: 4px; background: #1f1f1f; margin: 16px auto 0; overflow: hidden; }
+  .bar i { display: block; height: 100%; width: 0; border-radius: 4px; background: linear-gradient(90deg, #c23a4f, #e2702d, #f2b31a); animation: fill 3s linear forwards; }
+  @keyframes fill { to { width: 100%; } }
+  .s { color: #9a978a; font-size: 14px; margin-top: 10px; }
+  button { margin-top: 18px; background: #f2b31a; color: #1a1000; border: 0; border-radius: 12px; padding: 14px 22px; font-weight: 800; font-size: 16px; }
+</style>
+</head>
+<body>
+<div>
+  <div class="t">Стартап-плей-офф</div>
+  <div id="box">
+    <svg class="chuck" viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg" aria-label="Чак">
+      <path d="M30 240 Q34 196 100 190 Q166 196 170 240Z" fill="#111816"/>
+      <path d="M78 192 L100 214 L122 192" fill="none" stroke="#e2702d" stroke-width="5"/>
+      <rect x="84" y="170" width="32" height="26" fill="#d9a473"/>
+      <path d="M46 92 Q44 40 100 34 Q156 40 154 92 L154 132 Q150 186 100 190 Q50 186 46 132Z" fill="#efbd8d"/>
+      <path d="M44 120 Q48 196 100 196 Q152 196 156 120 Q150 142 136 140 Q120 132 100 136 Q80 132 64 140 Q50 142 44 120Z" fill="#7a4520"/>
+      <path d="M74 140 Q100 128 128 140 Q114 146 100 144 Q86 146 74 140Z" fill="#5e3315"/>
+      <path d="M84 150 Q100 158 118 146" stroke="#2a1608" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path d="M40 96 Q34 30 100 22 Q170 26 162 96 Q156 70 140 62 Q124 72 100 66 Q74 72 60 62 Q46 70 40 96Z" fill="#6b3a18"/>
+      <path d="M54 86 L94 82" stroke="#4a260d" stroke-width="7" stroke-linecap="round"/>
+      <path d="M106 82 L146 86" stroke="#4a260d" stroke-width="7" stroke-linecap="round"/>
+      <rect x="52" y="92" width="44" height="26" rx="8" fill="#0b0f0d"/><rect x="104" y="92" width="44" height="26" rx="8" fill="#0b0f0d"/>
+      <path class="glint" d="M60 98 L74 98 M112 98 L126 98" stroke="#f2b31a" stroke-width="4" stroke-linecap="round"/>
+      <path d="M96 104 L104 104" stroke="#0b0f0d" stroke-width="5"/>
+      <path d="M98 112 Q100 130 96 132 Q102 134 106 130" stroke="#c98f5c" stroke-width="3" fill="none"/>
+    </svg>
+    <div class="msg">Секунду! Чак ищет самый быстрый путь…</div>
+    <div class="bar"><i></i></div>
+    <div class="s">обычно 1–3 секунды</div>
+  </div>
+</div>
+<script>
+// Стартовая страница: сама выбирает путь к приложению.
+// Без VPN открывается krugom.su напрямую; если он недоступен (VPN блокирует российские сайты) —
+// запасной вход через Cloudflare. Параметры и данные Telegram (#tgWebAppData…) передаются дальше как есть.
+var DIRECT = 'https://krugom.su/playoff/';
+var FALLBACK = 'https://playoff.martjusha2075.workers.dev/playoff/';
+var PAGES = { '': '', vote: '', profile: 'profile', jury: 'jury', admin: 'admin', screen: 'screen' };
+
+var q = new URLSearchParams(location.search);
+var page = PAGES.hasOwnProperty(q.get('p') || '') ? PAGES[q.get('p') || ''] : '';
+q.delete('p');
+var rest = (q.toString() ? '?' + q.toString() : '') + location.hash;
+
+// доступен ли сервер: любой ответ = доступен, обрыв или тишина дольше лимита = нет
+function reachable(base, ms) {
+  return new Promise(function (ok) {
+    var done = false, t = setTimeout(function () { if (!done) { done = true; ok(false); } }, ms);
+    fetch(base + 'css/app.css?ping=' + Date.now(), { mode: 'no-cors', cache: 'no-store' })
+      .then(function () { if (!done) { done = true; clearTimeout(t); ok(true); } })
+      .catch(function () { if (!done) { done = true; clearTimeout(t); ok(false); } });
+  });
+}
+function go(base) { location.replace(base + page + rest); }
+function fail() {
+  document.getElementById('box').innerHTML = '<div class="msg">Не получается подключиться 😕</div><div class="s">Проверьте интернет — или включите/выключите VPN и попробуйте снова.</div><button onclick="location.reload()">Попробовать снова</button>';
+}
+
+reachable(DIRECT, 2500).then(function (ok) {
+  if (ok) return go(DIRECT);
+  reachable(FALLBACK, 4000).then(function (ok2) { ok2 ? go(FALLBACK) : fail(); });
+});
+</script>
+</body>
+</html>
